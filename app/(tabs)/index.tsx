@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { colors } from '../../src/theme/colors';
 
-type StatusType = 'Em andamento' | 'Pendente' | 'Em analise' | 'Concluida';
+type StatusType = 'Agendada' | 'Hoje' | 'Em andamento' | 'Concluida';
 
 type Propriedade = {
   id: string;
@@ -20,15 +20,14 @@ type Propriedade = {
   local: string;
   distancia: string;
   status: StatusType;
-  data: string;
-  score: number | null;
+  visitaEm: string;
   icone: keyof typeof Ionicons.glyphMap;
   iconeBg: string;
 };
 
 const STATS = [
   { label: 'Atribuidas', value: '12', tone: 'dark' },
-  { label: 'Pendentes', value: '4', tone: 'light' },
+  { label: 'Hoje', value: '3', tone: 'light' },
   { label: 'Concluidas', value: '8', tone: 'green' },
 ] as const;
 
@@ -38,9 +37,8 @@ const PROPRIEDADES: Propriedade[] = [
     nome: 'Fazenda Santa Clara',
     local: 'Ribeirao Preto, SP',
     distancia: '12 km',
-    status: 'Em andamento',
-    data: 'Hoje',
-    score: 94,
+    status: 'Hoje',
+    visitaEm: 'Hoje - 09:30',
     icone: 'leaf-outline',
     iconeBg: '#DFF6E8',
   },
@@ -49,9 +47,8 @@ const PROPRIEDADES: Propriedade[] = [
     nome: 'Sitio Boa Esperanca',
     local: 'Bauru, SP',
     distancia: '38 km',
-    status: 'Pendente',
-    data: 'Amanha',
-    score: 61,
+    status: 'Agendada',
+    visitaEm: 'Amanha - 14:00',
     icone: 'paw-outline',
     iconeBg: '#EAF5DF',
   },
@@ -60,9 +57,8 @@ const PROPRIEDADES: Propriedade[] = [
     nome: 'Chacara Vale Verde',
     local: 'Jau, SP',
     distancia: '55 km',
-    status: 'Em analise',
-    data: '23/05',
-    score: 22,
+    status: 'Em andamento',
+    visitaEm: '23/05 - 08:30',
     icone: 'nutrition-outline',
     iconeBg: '#F5F0D9',
   },
@@ -72,8 +68,7 @@ const PROPRIEDADES: Propriedade[] = [
     local: 'Lencois Paulista',
     distancia: '20 km',
     status: 'Concluida',
-    data: '20/05',
-    score: 97,
+    visitaEm: '20/05 - 10:15',
     icone: 'flower-outline',
     iconeBg: '#F4EAD9',
   },
@@ -81,22 +76,15 @@ const PROPRIEDADES: Propriedade[] = [
 
 const getStatusStyle = (status: StatusType) => {
   switch (status) {
-    case 'Em andamento':
+    case 'Hoje':
       return { bg: '#E3F3FF', text: '#2A84C9', dot: '#71C4F3' };
-    case 'Pendente':
+    case 'Agendada':
       return { bg: '#FFF4D9', text: '#C7921E', dot: '#F3B63F' };
-    case 'Em analise':
-      return { bg: '#FFE2E2', text: '#D45959', dot: '#F06C6C' };
+    case 'Em andamento':
+      return { bg: '#EAF2FF', text: '#5278D8', dot: '#6F96FF' };
     default:
       return { bg: '#E2F6E9', text: '#2EAF6D', dot: '#5DCF95' };
   }
-};
-
-const getScoreColor = (score: number | null) => {
-  if (score == null) return colors.textMuted;
-  if (score >= 80) return colors.success;
-  if (score >= 60) return colors.warning;
-  return colors.danger;
 };
 
 export default function DashboardScreen() {
@@ -117,19 +105,11 @@ export default function DashboardScreen() {
               {item.local} - {item.distancia}
             </Text>
           </View>
+          <Text style={styles.visitDate}>Visita: {item.visitaEm}</Text>
           <View style={[styles.badge, { backgroundColor: statusStyle.bg }]}>
             <Text style={[styles.badgeText, { color: statusStyle.text }]}>{item.status}</Text>
             <View style={[styles.badgeDot, { backgroundColor: statusStyle.dot }]} />
           </View>
-        </View>
-
-        <View style={styles.cardRight}>
-          <Text style={styles.dateText}>{item.data}</Text>
-          {item.score != null && (
-            <Text style={[styles.scoreText, { color: getScoreColor(item.score) }]}>
-              Score: {item.score}
-            </Text>
-          )}
         </View>
       </TouchableOpacity>
     );
@@ -182,9 +162,14 @@ export default function DashboardScreen() {
 
       <View style={styles.sheet}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionEyebrow}>PROPRIEDADES ATRIBUIDAS</Text>
+          <View>
+            <Text style={styles.sectionEyebrow}>PROPRIEDADES ATRIBUIDAS</Text>
+            <Text style={styles.sectionDescription}>
+              Proximas propriedades que voce precisa visitar
+            </Text>
+          </View>
           <TouchableOpacity activeOpacity={0.8} style={styles.sectionAction}>
-            <Text style={styles.sectionActionText}>Ver tudo</Text>
+            <Text style={styles.sectionActionText}>Agenda</Text>
           </TouchableOpacity>
         </View>
 
@@ -293,7 +278,7 @@ const styles = StyleSheet.create({
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 16,
   },
   sectionEyebrow: {
@@ -301,6 +286,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 1,
+    marginBottom: 4,
+  },
+  sectionDescription: {
+    color: colors.textMuted,
+    fontSize: 13,
   },
   sectionAction: {
     backgroundColor: colors.card,
@@ -339,7 +329,6 @@ const styles = StyleSheet.create({
   },
   cardInfo: {
     flex: 1,
-    paddingRight: 10,
   },
   cardTitle: {
     color: colors.textDark,
@@ -352,12 +341,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   cardSubtitle: {
     color: colors.textMuted,
     fontSize: 13,
     flexShrink: 1,
+  },
+  visitDate: {
+    color: colors.primaryDark,
+    fontSize: 13,
+    fontWeight: '700',
+    marginBottom: 8,
   },
   badge: {
     alignSelf: 'flex-start',
@@ -376,19 +371,5 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 999,
-  },
-  cardRight: {
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    minHeight: 72,
-  },
-  dateText: {
-    color: '#A6A79E',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  scoreText: {
-    fontSize: 13,
-    fontWeight: '800',
   },
 });

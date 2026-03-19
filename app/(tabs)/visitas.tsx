@@ -13,6 +13,36 @@ import { router } from 'expo-router';
 
 import { colors } from '../../src/theme/colors';
 
+const PROPRIEDADES = [
+  { id: '1', nome: 'Fazenda Santa Clara', meta: 'Ribeirao Preto, SP' },
+  { id: '2', nome: 'Sitio Boa Esperanca', meta: 'Bauru, SP' },
+  { id: '3', nome: 'Chacara Vale Verde', meta: 'Jau, SP' },
+] as const;
+
+const VISITAS_REALIZADAS = [
+  {
+    id: '1',
+    propriedade: 'Fazenda Santa Clara',
+    data: '24/05/2025',
+    hora: '09:41',
+    status: 'Analisada',
+  },
+  {
+    id: '2',
+    propriedade: 'Sitio Boa Esperanca',
+    data: '22/05/2025',
+    hora: '13:20',
+    status: 'Enviada',
+  },
+  {
+    id: '3',
+    propriedade: 'Rancho Ipe Amarelo',
+    data: '20/05/2025',
+    hora: '10:15',
+    status: 'Concluida',
+  },
+] as const;
+
 const METADADOS = [
   { label: 'Latitude', value: '-21.1785' },
   { label: 'Longitude', value: '-47.8164' },
@@ -26,12 +56,11 @@ export default function VisitasScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <View style={styles.headerIcon}>
-            <Ionicons name="arrow-back" size={18} color={colors.primaryDark} />
-          </View>
           <View style={styles.headerCopy}>
-            <Text style={styles.title}>Registrar Visita</Text>
-            <Text style={styles.subtitle}>Fazenda Santa Clara</Text>
+            <Text style={styles.title}>Visitas</Text>
+            <Text style={styles.subtitle}>
+              Historico das visitas realizadas e novo envio de evidencias
+            </Text>
           </View>
           <TouchableOpacity style={styles.moreButton}>
             <Ionicons name="ellipsis-horizontal" size={18} color={colors.primaryDark} />
@@ -39,23 +68,41 @@ export default function VisitasScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>DADOS DA VISITA</Text>
-          <View style={styles.grid}>
-            <View style={styles.infoCardLarge}>
-              <Text style={styles.infoLabel}>Propriedade</Text>
-              <Text style={styles.infoValue}>Faz. Santa Clara</Text>
+          <Text style={styles.sectionTitle}>NOVA EVIDENCIA</Text>
+          <Text style={styles.helperText}>
+            Escolha a propriedade para vincular a foto da visita realizada.
+          </Text>
+
+          <View style={styles.selectionCard}>
+            <View style={styles.selectionTop}>
+              <View style={styles.selectionIcon}>
+                <Ionicons name="business-outline" size={22} color={colors.primaryLight} />
+              </View>
+              <View style={styles.selectionCopy}>
+                <Text style={styles.selectionLabel}>Propriedade selecionada</Text>
+                <Text style={styles.selectionTitle}>Fazenda Santa Clara</Text>
+                <Text style={styles.selectionMeta}>Ribeirao Preto, SP</Text>
+              </View>
             </View>
-            <View style={styles.infoCard}>
-              <Text style={styles.infoLabel}>Instrutor</Text>
-              <Text style={styles.infoValue}>Joao Silva</Text>
-            </View>
-            <View style={styles.infoCard}>
-              <Text style={styles.infoLabel}>Data</Text>
-              <Text style={styles.infoValue}>24/05/2025</Text>
-            </View>
-            <View style={styles.infoCard}>
-              <Text style={styles.infoLabel}>Hora</Text>
-              <Text style={styles.infoValue}>09:41</Text>
+
+            <View style={styles.chipsRow}>
+              {PROPRIEDADES.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  activeOpacity={0.9}
+                  style={[
+                    styles.propertyChip,
+                    item.id === '1' && styles.propertyChipActive,
+                  ]}>
+                  <Text
+                    style={[
+                      styles.propertyChipText,
+                      item.id === '1' && styles.propertyChipTextActive,
+                    ]}>
+                    {item.nome}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
         </View>
@@ -80,7 +127,7 @@ export default function VisitasScreen() {
           <View style={styles.geoHeader}>
             <View>
               <Text style={styles.geoTitle}>Geolocalizacao Extraida</Text>
-              <Text style={styles.geoSubtitle}>Metadados OK</Text>
+              <Text style={styles.geoSubtitle}>Metadados da foto selecionada</Text>
             </View>
             <View style={styles.geoBadge}>
               <Ionicons name="checkmark-circle" size={16} color={colors.success} />
@@ -97,28 +144,34 @@ export default function VisitasScreen() {
             ))}
           </View>
 
-          <View style={styles.mapCard}>
-            <View style={styles.mapGrid}>
-              {Array.from({ length: 24 }).map((_, index) => (
-                <View key={index} style={styles.mapSquare} />
-              ))}
-            </View>
-            <View style={styles.mapPin}>
-              <Ionicons name="location" size={24} color={colors.danger} />
-            </View>
-            <View style={styles.mapLegend}>
-              <Text style={styles.mapLegendText}>Distancia estimada: 87m da propriedade</Text>
-            </View>
-          </View>
+          <TouchableOpacity
+            activeOpacity={0.92}
+            style={styles.primaryButton}
+            onPress={() => router.push('/avaliador')}>
+            <Text style={styles.primaryButtonText}>Enviar para Analise</Text>
+            <Ionicons name="arrow-forward" size={18} color={colors.textLight} />
+          </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
-          activeOpacity={0.92}
-          style={styles.primaryButton}
-          onPress={() => router.push('/avaliador')}>
-          <Text style={styles.primaryButtonText}>Enviar para Analise</Text>
-          <Ionicons name="arrow-forward" size={18} color={colors.textLight} />
-        </TouchableOpacity>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>VISITAS REALIZADAS</Text>
+          {VISITAS_REALIZADAS.map((item) => (
+            <View key={item.id} style={styles.historyRow}>
+              <View style={styles.historyIcon}>
+                <Ionicons name="clipboard-outline" size={20} color={colors.primaryLight} />
+              </View>
+              <View style={styles.historyCopy}>
+                <Text style={styles.historyTitle}>{item.propriedade}</Text>
+                <Text style={styles.historyMeta}>
+                  {item.data} - {item.hora}
+                </Text>
+              </View>
+              <View style={styles.historyBadge}>
+                <Text style={styles.historyBadgeText}>{item.status}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -136,17 +189,8 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 18,
-  },
-  headerIcon: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: '#E2F0E6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
   },
   headerCopy: {
     flex: 1,
@@ -155,10 +199,12 @@ const styles = StyleSheet.create({
     color: colors.textDark,
     fontSize: 29,
     fontWeight: '800',
+    marginBottom: 4,
   },
   subtitle: {
     color: colors.textMuted,
     fontSize: 13,
+    lineHeight: 18,
   },
   moreButton: {
     width: 34,
@@ -184,41 +230,73 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 1,
+    marginBottom: 10,
+  },
+  helperText: {
+    color: colors.textMuted,
+    fontSize: 13,
+    lineHeight: 18,
     marginBottom: 14,
   },
-  grid: {
+  selectionCard: {
+    backgroundColor: '#F8F4EC',
+    borderRadius: 18,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E8DECF',
+  },
+  selectionTop: {
+    flexDirection: 'row',
+    marginBottom: 14,
+  },
+  selectionIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    backgroundColor: '#E0F2E7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  selectionCopy: {
+    flex: 1,
+  },
+  selectionLabel: {
+    color: '#989289',
+    fontSize: 11,
+    marginBottom: 4,
+  },
+  selectionTitle: {
+    color: colors.textDark,
+    fontSize: 20,
+    fontWeight: '800',
+    marginBottom: 2,
+  },
+  selectionMeta: {
+    color: colors.textMuted,
+    fontSize: 12,
+  },
+  chipsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 8,
   },
-  infoCardLarge: {
-    width: '48%',
-    backgroundColor: '#FAF7F1',
-    borderRadius: 16,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#EADFCB',
-    minHeight: 82,
+  propertyChip: {
+    borderRadius: 999,
+    backgroundColor: '#ECE6DA',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
-  infoCard: {
-    width: '48%',
-    backgroundColor: '#FAF7F1',
-    borderRadius: 16,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#EADFCB',
-    minHeight: 82,
+  propertyChipActive: {
+    backgroundColor: colors.primaryDark,
   },
-  infoLabel: {
-    color: '#A3A096',
-    fontSize: 11,
-    marginBottom: 8,
-  },
-  infoValue: {
-    color: colors.textDark,
-    fontSize: 22,
-    lineHeight: 24,
+  propertyChipText: {
+    color: colors.textMuted,
+    fontSize: 12,
     fontWeight: '700',
+  },
+  propertyChipTextActive: {
+    color: colors.textLight,
   },
   uploadCard: {
     borderWidth: 2,
@@ -295,7 +373,7 @@ const styles = StyleSheet.create({
   metadataRow: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 14,
+    marginBottom: 16,
   },
   metadataCard: {
     flex: 1,
@@ -313,43 +391,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
   },
-  mapCard: {
-    borderRadius: 18,
-    overflow: 'hidden',
-    backgroundColor: '#E6F0E5',
-    borderWidth: 1,
-    borderColor: '#D3E1D2',
-  },
-  mapGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    opacity: 0.55,
-  },
-  mapSquare: {
-    width: '16.66%',
-    aspectRatio: 1,
-    borderWidth: 0.5,
-    borderColor: '#C9D8C7',
-  },
-  mapPin: {
-    position: 'absolute',
-    top: '44%',
-    left: '50%',
-    marginLeft: -12,
-    marginTop: -18,
-  },
-  mapLegend: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-  },
-  mapLegendText: {
-    color: colors.textDark,
-    fontSize: 12,
-    fontWeight: '600',
-  },
   primaryButton: {
-    marginTop: 6,
     backgroundColor: colors.primaryDark,
     borderRadius: 20,
     paddingVertical: 16,
@@ -363,5 +405,45 @@ const styles = StyleSheet.create({
     color: colors.textLight,
     fontSize: 16,
     fontWeight: '800',
+  },
+  historyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#E8E0D4',
+  },
+  historyIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EAF5DF',
+    marginRight: 12,
+  },
+  historyCopy: {
+    flex: 1,
+  },
+  historyTitle: {
+    color: colors.textDark,
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  historyMeta: {
+    color: colors.textMuted,
+    fontSize: 12,
+  },
+  historyBadge: {
+    borderRadius: 999,
+    backgroundColor: '#E4F6EB',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  historyBadgeText: {
+    color: colors.success,
+    fontSize: 12,
+    fontWeight: '700',
   },
 });
