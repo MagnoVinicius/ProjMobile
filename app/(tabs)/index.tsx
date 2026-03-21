@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   FlatList,
   SafeAreaView,
@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../src/theme/colors';
 
 type StatusType = 'Agendada' | 'Hoje' | 'Em andamento' | 'Concluida';
+type DashboardFilter = 'atribuidas' | 'hoje' | 'concluidas';
 
 type Propriedade = {
   id: string;
@@ -26,10 +27,15 @@ type Propriedade = {
 };
 
 const STATS = [
-  { label: 'Atribuidas', value: '12', tone: 'dark' },
-  { label: 'Hoje', value: '3', tone: 'light' },
-  { label: 'Concluidas', value: '8', tone: 'green' },
-] as const;
+  { id: 'atribuidas', label: 'Atribuidas', value: '4', tone: 'dark' },
+  { id: 'hoje', label: 'Hoje', value: '2', tone: 'light' },
+  { id: 'concluidas', label: 'Concluidas', value: '2', tone: 'green' },
+] as const satisfies readonly {
+  id: DashboardFilter;
+  label: string;
+  value: string;
+  tone: 'dark' | 'light' | 'green';
+}[];
 
 const PROPRIEDADES: Propriedade[] = [
   {
@@ -64,6 +70,16 @@ const PROPRIEDADES: Propriedade[] = [
   },
   {
     id: '4',
+    nome: 'Estancia Pedra Branca',
+    local: 'Cravinhos, SP',
+    distancia: '16 km',
+    status: 'Hoje',
+    visitaEm: 'Hoje - 15:00',
+    icone: 'rose-outline',
+    iconeBg: '#E6F3E1',
+  },
+  {
+    id: '5',
     nome: 'Rancho Ipe Amarelo',
     local: 'Lencois Paulista',
     distancia: '20 km',
@@ -71,6 +87,16 @@ const PROPRIEDADES: Propriedade[] = [
     visitaEm: '20/05 - 10:15',
     icone: 'flower-outline',
     iconeBg: '#F4EAD9',
+  },
+  {
+    id: '6',
+    nome: 'Fazenda Bela Vista',
+    local: 'Sertaozinho, SP',
+    distancia: '18 km',
+    status: 'Concluida',
+    visitaEm: '18/05 - 15:20',
+    icone: 'home-outline',
+    iconeBg: '#E8F0DA',
   },
 ];
 
@@ -87,7 +113,47 @@ const getStatusStyle = (status: StatusType) => {
   }
 };
 
+const getSectionCopy = (activeFilter: DashboardFilter) => {
+  if (activeFilter === 'concluidas') {
+    return {
+      title: 'VISITAS CONCLUIDAS',
+      description: 'Historico das propriedades ja visitadas por voce',
+      action: 'Historico',
+    };
+  }
+
+  if (activeFilter === 'hoje') {
+    return {
+      title: 'VISITAS DE HOJE',
+      description: 'Propriedades que precisam ser atendidas hoje',
+      action: 'Rota',
+    };
+  }
+
+  return {
+    title: 'PROPRIEDADES ATRIBUIDAS',
+    description: 'Proximas propriedades que voce precisa visitar',
+    action: 'Agenda',
+  };
+};
+
 export default function DashboardScreen() {
+  const [activeFilter, setActiveFilter] = useState<DashboardFilter>('atribuidas');
+
+  const filteredProperties = useMemo(() => {
+    if (activeFilter === 'concluidas') {
+      return PROPRIEDADES.filter((item) => item.status === 'Concluida');
+    }
+
+    if (activeFilter === 'hoje') {
+      return PROPRIEDADES.filter((item) => item.status === 'Hoje');
+    }
+
+    return PROPRIEDADES.filter((item) => item.status !== 'Concluida');
+  }, [activeFilter]);
+
+  const sectionCopy = getSectionCopy(activeFilter);
+
   const renderItem = ({ item }: { item: Propriedade }) => {
     const statusStyle = getStatusStyle(item.status);
 
@@ -132,53 +198,66 @@ export default function DashboardScreen() {
         </View>
 
         <View style={styles.statsRow}>
-          {STATS.map((item) => (
-            <View
-              key={item.label}
-              style={[
-                styles.statBox,
-                item.tone === 'dark' && styles.statBoxDark,
-                item.tone === 'light' && styles.statBoxLight,
-                item.tone === 'green' && styles.statBoxGreen,
-              ]}>
-              <Text
+          {STATS.map((item) => {
+            const isActive = item.id === activeFilter;
+
+            return (
+              <TouchableOpacity
+                key={item.label}
+                activeOpacity={0.9}
+                onPress={() => setActiveFilter(item.id)}
                 style={[
+                  styles.statBox,
+                  item.tone === 'dark' && styles.statBoxDark,
+                  item.tone === 'light' && styles.statBoxLight,
+                  item.tone === 'green' && styles.statBoxGreen,
+                  isActive && styles.statBoxActive,
+                ]}>
+                <View style={[styles.statIndicator, isActive && styles.statIndicatorActive]} />
+                <Text
+                  style={[
                   styles.statNumber,
-                  item.tone === 'light' && styles.statNumberDark,
-                ]}>
-                {item.value}
-              </Text>
-              <Text
-                style={[
-                  styles.statLabel,
-                  item.tone === 'light' && styles.statLabelDark,
-                ]}>
-                {item.label}
-              </Text>
-            </View>
-          ))}
+                  ]}>
+                  {item.value}
+                </Text>
+                <Text
+                  style={[
+                    styles.statLabel,
+                  ]}>
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
 
       <View style={styles.sheet}>
         <View style={styles.sectionHeader}>
           <View>
-            <Text style={styles.sectionEyebrow}>PROPRIEDADES ATRIBUIDAS</Text>
-            <Text style={styles.sectionDescription}>
-              Proximas propriedades que voce precisa visitar
-            </Text>
+            <Text style={styles.sectionEyebrow}>{sectionCopy.title}</Text>
+            <Text style={styles.sectionDescription}>{sectionCopy.description}</Text>
           </View>
           <TouchableOpacity activeOpacity={0.8} style={styles.sectionAction}>
-            <Text style={styles.sectionActionText}>Agenda</Text>
+            <Text style={styles.sectionActionText}>{sectionCopy.action}</Text>
           </TouchableOpacity>
         </View>
 
         <FlatList
-          data={PROPRIEDADES}
+          data={filteredProperties}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Ionicons name="clipboard-outline" size={28} color={colors.textMuted} />
+              <Text style={styles.emptyTitle}>Nenhuma visita encontrada</Text>
+              <Text style={styles.emptyDescription}>
+                Quando houver registros nessa categoria, eles vao aparecer aqui.
+              </Text>
+            </View>
+          }
         />
       </View>
     </SafeAreaView>
@@ -241,15 +320,36 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 8,
     alignItems: 'center',
+    position: 'relative',
+    overflow: 'hidden',
   },
   statBoxDark: {
     backgroundColor: '#284D3B',
   },
   statBoxLight: {
-    backgroundColor: '#F3EEDF',
+    backgroundColor: '#284D3B',
   },
   statBoxGreen: {
     backgroundColor: '#2B6A4A',
+  },
+  statBoxActive: {
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.55)',
+    shadowColor: '#04140E',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    elevation: 5,
+  },
+  statIndicator: {
+    width: 24,
+    height: 4,
+    borderRadius: 999,
+    backgroundColor: 'transparent',
+    marginBottom: 8,
+  },
+  statIndicatorActive: {
+    backgroundColor: '#FFFFFF',
   },
   statNumber: {
     fontSize: 24,
@@ -257,15 +357,9 @@ const styles = StyleSheet.create({
     color: colors.textLight,
     marginBottom: 2,
   },
-  statNumberDark: {
-    color: colors.textDark,
-  },
   statLabel: {
     fontSize: 12,
     color: '#CDE0D5',
-  },
-  statLabelDark: {
-    color: colors.textMuted,
   },
   sheet: {
     flex: 1,
@@ -291,6 +385,7 @@ const styles = StyleSheet.create({
   sectionDescription: {
     color: colors.textMuted,
     fontSize: 13,
+    maxWidth: 230,
   },
   sectionAction: {
     backgroundColor: colors.card,
@@ -371,5 +466,23 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 999,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  emptyTitle: {
+    color: colors.textDark,
+    fontSize: 16,
+    fontWeight: '700',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  emptyDescription: {
+    color: colors.textMuted,
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 18,
   },
 });

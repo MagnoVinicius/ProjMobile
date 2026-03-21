@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -50,6 +50,11 @@ const METADADOS = [
 ] as const;
 
 export default function VisitasScreen() {
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string>(PROPRIEDADES[0].id);
+
+  const selectedProperty =
+    PROPRIEDADES.find((item) => item.id === selectedPropertyId) ?? PROPRIEDADES[0];
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
@@ -80,29 +85,31 @@ export default function VisitasScreen() {
               </View>
               <View style={styles.selectionCopy}>
                 <Text style={styles.selectionLabel}>Propriedade selecionada</Text>
-                <Text style={styles.selectionTitle}>Fazenda Santa Clara</Text>
-                <Text style={styles.selectionMeta}>Ribeirao Preto, SP</Text>
+                <Text style={styles.selectionTitle}>{selectedProperty.nome}</Text>
+                <Text style={styles.selectionMeta}>{selectedProperty.meta}</Text>
               </View>
             </View>
 
             <View style={styles.chipsRow}>
-              {PROPRIEDADES.map((item) => (
-                <TouchableOpacity
-                  key={item.id}
-                  activeOpacity={0.9}
-                  style={[
-                    styles.propertyChip,
-                    item.id === '1' && styles.propertyChipActive,
-                  ]}>
-                  <Text
-                    style={[
-                      styles.propertyChipText,
-                      item.id === '1' && styles.propertyChipTextActive,
-                    ]}>
-                    {item.nome}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              {PROPRIEDADES.map((item) => {
+                const isActive = item.id === selectedPropertyId;
+
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    activeOpacity={0.9}
+                    onPress={() => setSelectedPropertyId(item.id)}
+                    style={[styles.propertyChip, isActive && styles.propertyChipActive]}>
+                    <Text
+                      style={[
+                        styles.propertyChipText,
+                        isActive && styles.propertyChipTextActive,
+                      ]}>
+                      {item.nome}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         </View>
@@ -127,7 +134,9 @@ export default function VisitasScreen() {
           <View style={styles.geoHeader}>
             <View>
               <Text style={styles.geoTitle}>Geolocalizacao Extraida</Text>
-              <Text style={styles.geoSubtitle}>Metadados da foto selecionada</Text>
+              <Text style={styles.geoSubtitle}>
+                Metadados da foto selecionada para {selectedProperty.nome}
+              </Text>
             </View>
             <View style={styles.geoBadge}>
               <Ionicons name="checkmark-circle" size={16} color={colors.success} />
@@ -355,6 +364,7 @@ const styles = StyleSheet.create({
   geoSubtitle: {
     color: colors.textMuted,
     fontSize: 12,
+    maxWidth: 220,
   },
   geoBadge: {
     flexDirection: 'row',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -14,33 +14,207 @@ import { colors } from '../../src/theme/colors';
 
 const PERIODOS = ['7 dias', 'Mes', 'Ano'] as const;
 
-const ALERTAS = [
-  {
-    id: '1',
-    title: 'Chacara Vale Verde',
-    subtitle: 'Score 22 - Alta prob. de VPN detectada',
-    date: '23/05',
-    tone: 'danger',
-    icon: 'alert-circle',
-  },
-  {
-    id: '2',
-    title: 'Sitio Boa Esperanca',
-    subtitle: 'Score 61 - IP inconsistente com regiao',
-    date: '22/05',
-    tone: 'warning',
-    icon: 'warning',
-  },
-] as const;
+type Periodo = (typeof PERIODOS)[number];
 
-const HISTORICO = [
-  { id: '1', title: 'Faz. Santa Clara', date: '24/05/2025 - 09:41', score: 94, icon: 'leaf-outline' },
-  { id: '2', title: 'Sitio Boa Esperanca', date: '22/05/2025 - 13:20', score: 61, icon: 'paw-outline' },
-  { id: '3', title: 'Chacara Vale Verde', date: '23/05/2025 - 08:10', score: 22, icon: 'nutrition-outline' },
-] as const;
+type ReportData = {
+  score: string;
+  delta: string;
+  visitasLabel: string;
+  visitasValor: string;
+  alertasValor: string;
+  alertas: readonly {
+    id: string;
+    title: string;
+    subtitle: string;
+    date: string;
+    tone: 'danger' | 'warning';
+    icon: keyof typeof Ionicons.glyphMap;
+  }[];
+  historico: readonly {
+    id: string;
+    title: string;
+    date: string;
+    score: number;
+    icon: keyof typeof Ionicons.glyphMap;
+  }[];
+};
+
+const RELATORIOS: Record<Periodo, ReportData> = {
+  '7 dias': {
+    score: '84.6',
+    delta: '+1.4',
+    visitasLabel: 'Visitas em 7 dias',
+    visitasValor: '6',
+    alertasValor: '1',
+    alertas: [
+      {
+        id: '1',
+        title: 'Sitio Boa Esperanca',
+        subtitle: 'Score 61 - IP inconsistente com regiao',
+        date: '22/05',
+        tone: 'warning',
+        icon: 'warning',
+      },
+    ],
+    historico: [
+      {
+        id: '1',
+        title: 'Faz. Santa Clara',
+        date: '24/05/2025 - 09:41',
+        score: 94,
+        icon: 'leaf-outline',
+      },
+      {
+        id: '2',
+        title: 'Sitio Boa Esperanca',
+        date: '22/05/2025 - 13:20',
+        score: 61,
+        icon: 'paw-outline',
+      },
+      {
+        id: '3',
+        title: 'Estancia Pedra Branca',
+        date: '21/05/2025 - 15:00',
+        score: 89,
+        icon: 'rose-outline',
+      },
+    ],
+  },
+  Mes: {
+    score: '87.4',
+    delta: '+3.2',
+    visitasLabel: 'Visitas no mes',
+    visitasValor: '24',
+    alertasValor: '2',
+    alertas: [
+      {
+        id: '1',
+        title: 'Chacara Vale Verde',
+        subtitle: 'Score 22 - Alta prob. de VPN detectada',
+        date: '23/05',
+        tone: 'danger',
+        icon: 'alert-circle',
+      },
+      {
+        id: '2',
+        title: 'Sitio Boa Esperanca',
+        subtitle: 'Score 61 - IP inconsistente com regiao',
+        date: '22/05',
+        tone: 'warning',
+        icon: 'warning',
+      },
+    ],
+    historico: [
+      {
+        id: '1',
+        title: 'Faz. Santa Clara',
+        date: '24/05/2025 - 09:41',
+        score: 94,
+        icon: 'leaf-outline',
+      },
+      {
+        id: '2',
+        title: 'Sitio Boa Esperanca',
+        date: '22/05/2025 - 13:20',
+        score: 61,
+        icon: 'paw-outline',
+      },
+      {
+        id: '3',
+        title: 'Chacara Vale Verde',
+        date: '23/05/2025 - 08:10',
+        score: 22,
+        icon: 'nutrition-outline',
+      },
+      {
+        id: '4',
+        title: 'Rancho Ipe Amarelo',
+        date: '20/05/2025 - 10:15',
+        score: 97,
+        icon: 'flower-outline',
+      },
+    ],
+  },
+  Ano: {
+    score: '90.1',
+    delta: '+6.8',
+    visitasLabel: 'Visitas no ano',
+    visitasValor: '86',
+    alertasValor: '5',
+    alertas: [
+      {
+        id: '1',
+        title: 'Chacara Vale Verde',
+        subtitle: 'Score 22 - Alta prob. de VPN detectada',
+        date: '23/05',
+        tone: 'danger',
+        icon: 'alert-circle',
+      },
+      {
+        id: '2',
+        title: 'Sitio Boa Esperanca',
+        subtitle: 'Score 61 - IP inconsistente com regiao',
+        date: '22/05',
+        tone: 'warning',
+        icon: 'warning',
+      },
+      {
+        id: '3',
+        title: 'Fazenda Horizonte',
+        subtitle: 'Score 58 - Divergencia de localizacao em abril',
+        date: '17/04',
+        tone: 'warning',
+        icon: 'warning',
+      },
+    ],
+    historico: [
+      {
+        id: '1',
+        title: 'Faz. Santa Clara',
+        date: '24/05/2025 - 09:41',
+        score: 94,
+        icon: 'leaf-outline',
+      },
+      {
+        id: '2',
+        title: 'Rancho Ipe Amarelo',
+        date: '20/05/2025 - 10:15',
+        score: 97,
+        icon: 'flower-outline',
+      },
+      {
+        id: '3',
+        title: 'Fazenda Bela Vista',
+        date: '18/05/2025 - 15:20',
+        score: 91,
+        icon: 'home-outline',
+      },
+      {
+        id: '4',
+        title: 'Sitio Boa Esperanca',
+        date: '22/05/2025 - 13:20',
+        score: 61,
+        icon: 'paw-outline',
+      },
+      {
+        id: '5',
+        title: 'Chacara Vale Verde',
+        date: '23/05/2025 - 08:10',
+        score: 22,
+        icon: 'nutrition-outline',
+      },
+    ],
+  },
+};
 
 export default function RelatoriosScreen() {
-  const [periodoAtivo, setPeriodoAtivo] = useState<(typeof PERIODOS)[number]>('Mes');
+  const [periodoAtivo, setPeriodoAtivo] = useState<Periodo>('Mes');
+
+  const data = useMemo(() => RELATORIOS[periodoAtivo], [periodoAtivo]);
+  const progressWidth = useMemo(
+    () => `${Math.min(Number(data.score), 100)}%` as const,
+    [data.score]
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -75,36 +249,38 @@ export default function RelatoriosScreen() {
 
         <View style={styles.scoreCard}>
           <View>
-            <Text style={styles.scoreCaption}>Score medio do instrutor</Text>
+            <Text style={styles.scoreCaption}>
+              Score medio do instrutor em {periodoAtivo === 'Mes' ? 'mes' : periodoAtivo.toLowerCase()}
+            </Text>
             <View style={styles.scoreRow}>
-              <Text style={styles.scoreValue}>87.4</Text>
-              <Text style={styles.scoreDelta}>+3.2</Text>
+              <Text style={styles.scoreValue}>{data.score}</Text>
+              <Text style={styles.scoreDelta}>{data.delta}</Text>
             </View>
             <View style={styles.progressTrack}>
-              <View style={styles.progressFill} />
+              <View style={[styles.progressFill, { width: progressWidth }]} />
             </View>
           </View>
           <View style={styles.trophyWrap}>
-            <Text style={styles.trophy}>🏆</Text>
+            <Text style={styles.trophy}>T</Text>
           </View>
         </View>
 
         <View style={styles.summaryGrid}>
           <View style={styles.summaryCard}>
             <Ionicons name="clipboard-outline" size={22} color="#DF8E56" />
-            <Text style={styles.summaryValue}>24</Text>
-            <Text style={styles.summaryLabel}>Visitas no mes</Text>
+            <Text style={styles.summaryValue}>{data.visitasValor}</Text>
+            <Text style={styles.summaryLabel}>{data.visitasLabel}</Text>
           </View>
           <View style={styles.summaryCard}>
             <Ionicons name="warning-outline" size={22} color={colors.warning} />
-            <Text style={[styles.summaryValue, styles.summaryDanger]}>2</Text>
+            <Text style={[styles.summaryValue, styles.summaryDanger]}>{data.alertasValor}</Text>
             <Text style={styles.summaryLabel}>Alertas ativos</Text>
           </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>ALERTAS DE POSSIVEL FRAUDE</Text>
-          {ALERTAS.map((alerta) => (
+          {data.alertas.map((alerta) => (
             <View key={alerta.id} style={styles.alertRow}>
               <View
                 style={[
@@ -127,8 +303,10 @@ export default function RelatoriosScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>HISTORICO DE VISITAS</Text>
-          {HISTORICO.map((item) => (
+          <Text style={styles.sectionTitle}>
+            HISTORICO DE VISITAS - {periodoAtivo.toUpperCase()}
+          </Text>
+          {data.historico.map((item) => (
             <TouchableOpacity key={item.id} activeOpacity={0.9} style={styles.historyRow}>
               <View style={styles.historyIconWrap}>
                 <Ionicons name={item.icon} size={20} color={colors.primaryLight} />
@@ -242,7 +420,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.14)',
   },
   progressFill: {
-    width: '78%',
     height: '100%',
     borderRadius: 999,
     backgroundColor: colors.primaryLight,
@@ -256,7 +433,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   trophy: {
-    fontSize: 30,
+    fontSize: 28,
+    fontWeight: '800',
+    color: colors.textLight,
   },
   summaryGrid: {
     flexDirection: 'row',
@@ -289,6 +468,7 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 13,
     marginTop: 2,
+    textAlign: 'center',
   },
   section: {
     backgroundColor: colors.card,
